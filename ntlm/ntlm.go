@@ -1,4 +1,5 @@
-//Copyright 2013 Thomson Reuters Global Resources.  All Rights Reserved.  Proprietary and confidential information of TRGR.  Disclosure, use, or reproduction without written authorization of TRGR is prohibited.
+//Copyright 2013 Thomson Reuters Global Resources. BSD License please see License file for more information
+
 // Package NTLM implements the interfaces used for interacting with NTLMv1 and NTLMv2.
 // To create NTLM v1 or v2 sessions you would use CreateClientSession and create ClientServerSession.
 package ntlm
@@ -6,7 +7,6 @@ package ntlm
 import (
 	rc4P "crypto/rc4"
 	"errors"
-	"ntlm/messages"
 )
 
 type Version int
@@ -43,9 +43,9 @@ type ClientSession interface {
 	SetUserInfo(username string, password string, domain string)
 	SetMode(mode Mode)
 
-	GenerateNegotiateMessage() (*messages.Negotiate, error)
-	ProcessChallengeMessage(*messages.Challenge) error
-	GenerateAuthenticateMessage() (*messages.Authenticate, error)
+	GenerateNegotiateMessage() (*NegotiateMessage, error)
+	ProcessChallengeMessage(*ChallengeMessage) error
+	GenerateAuthenticateMessage() (*AuthenticateMessage, error)
 
 	Seal(message []byte) ([]byte, error)
 	Sign(message []byte) ([]byte, error)
@@ -75,11 +75,11 @@ type ServerSession interface {
 	GetUserInfo() (string, string, string)
 
 	SetMode(mode Mode)
-	SetServerChallenge(challege []byte)
+	SetServerChallenge(challenge []byte)
 
-	ProcessNegotiateMessage(*messages.Negotiate) error
-	GenerateChallengeMessage() (*messages.Challenge, error)
-	ProcessAuthenticateMessage(*messages.Authenticate) error
+	ProcessNegotiateMessage(*NegotiateMessage) error
+	GenerateChallengeMessage() (*ChallengeMessage, error)
+	ProcessAuthenticateMessage(*AuthenticateMessage) error
 
 	GetSessionData() *SessionData
 
@@ -100,9 +100,9 @@ type SessionData struct {
 
 	NegotiateFlags uint32
 
-	negotiateMessage    *messages.Negotiate
-	challengeMessage    *messages.Challenge
-	authenticateMessage *messages.Authenticate
+	negotiateMessage    *NegotiateMessage
+	challengeMessage    *ChallengeMessage
+	authenticateMessage *AuthenticateMessage
 
 	serverChallenge     []byte
 	clientChallenge     []byte

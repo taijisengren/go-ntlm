@@ -1,5 +1,6 @@
-//Copyright 2013 Thomson Reuters Global Resources.  All Rights Reserved.  Proprietary and confidential information of TRGR.  Disclosure, use, or reproduction without written authorization of TRGR is prohibited.
-package messages
+//Copyright 2013 Thomson Reuters Global Resources. BSD License please see License file for more information
+
+package ntlm
 
 import (
 	"bytes"
@@ -9,7 +10,7 @@ import (
 	"fmt"
 )
 
-type Challenge struct {
+type ChallengeMessage struct {
 	// sig - 8 bytes
 	Signature []byte
 	// message type - 4 bytes
@@ -52,8 +53,8 @@ type Challenge struct {
 	Payload []byte
 }
 
-func ParseChallengeMessage(body []byte) (*Challenge, error) {
-	challenge := new(Challenge)
+func ParseChallengeMessage(body []byte) (*ChallengeMessage, error) {
+	challenge := new(ChallengeMessage)
 
 	challenge.Signature = body[0:8]
 	if !bytes.Equal(challenge.Signature, []byte("NTLMSSP\x00")) {
@@ -100,7 +101,7 @@ func ParseChallengeMessage(body []byte) (*Challenge, error) {
 	return challenge, nil
 }
 
-func (c *Challenge) Bytes() []byte {
+func (c *ChallengeMessage) Bytes() []byte {
 	payloadLen := int(c.TargetName.Len + c.TargetInfoPayloadStruct.Len)
 	messageLen := 8 + 4 + 8 + 4 + 8 + 8 + 8 + 8
 	payloadOffset := uint32(messageLen)
@@ -136,7 +137,7 @@ func (c *Challenge) Bytes() []byte {
 	return buffer.Bytes()
 }
 
-func (c *Challenge) getLowestPayloadOffset() int {
+func (c *ChallengeMessage) getLowestPayloadOffset() int {
 	payloadStructs := [...]*PayloadStruct{c.TargetName, c.TargetInfoPayloadStruct}
 
 	// Find the lowest offset value
@@ -151,7 +152,7 @@ func (c *Challenge) getLowestPayloadOffset() int {
 	return lowest
 }
 
-func (c *Challenge) String() string {
+func (c *ChallengeMessage) String() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("Challenge NTLM Message")

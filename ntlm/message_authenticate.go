@@ -1,5 +1,6 @@
-//Copyright 2013 Thomson Reuters Global Resources.  All Rights Reserved.  Proprietary and confidential information of TRGR.  Disclosure, use, or reproduction without written authorization of TRGR is prohibited.
-package messages
+//Copyright 2013 Thomson Reuters Global Resources. BSD License please see License file for more information
+
+package ntlm
 
 import (
 	"bytes"
@@ -9,7 +10,7 @@ import (
 	"fmt"
 )
 
-type Authenticate struct {
+type AuthenticateMessage struct {
 	// sig - 8 bytes
 	Signature []byte
 	// message type - 4 bytes
@@ -37,7 +38,7 @@ type Authenticate struct {
 	/// MS-NLMP 2.2.1.3 - In connectionless mode, a NEGOTIATE structure that contains a set of bit flags (section 2.2.2.5) and represents the
 	// conclusion of negotiation—the choices the client has made from the options the server offered in the CHALLENGE_MESSAGE.
 	// In connection-oriented mode, a NEGOTIATE structure that contains the set of bit flags (section 2.2.2.5) negotiated in
-	// the previous messages.
+	// the previous
 	NegotiateFlags uint32 // 4 bytes
 
 	// Version (8 bytes): A VERSION structure (section 2.2.2.10) that is present only when the NTLMSSP_NEGOTIATE_VERSION
@@ -52,8 +53,8 @@ type Authenticate struct {
 	Payload []byte
 }
 
-func ParseAuthenticateMessage(body []byte, ntlmVersion int) (*Authenticate, error) {
-	am := new(Authenticate)
+func ParseAuthenticateMessage(body []byte, ntlmVersion int) (*AuthenticateMessage, error) {
+	am := new(AuthenticateMessage)
 
 	am.Signature = body[0:8]
 	if !bytes.Equal(am.Signature, []byte("NTLMSSP\x00")) {
@@ -154,7 +155,7 @@ func ParseAuthenticateMessage(body []byte, ntlmVersion int) (*Authenticate, erro
 	return am, nil
 }
 
-func (a *Authenticate) ClientChallenge() (response []byte) {
+func (a *AuthenticateMessage) ClientChallenge() (response []byte) {
 	if a.NtlmV2Response != nil {
 		response = a.NtlmV2Response.NtlmV2ClientChallenge.ChallengeFromClient
 	} else if a.NtlmV1Response != nil && NTLMSSP_NEGOTIATE_EXTENDED_SESSIONSECURITY.IsSet(a.NegotiateFlags) {
@@ -164,7 +165,7 @@ func (a *Authenticate) ClientChallenge() (response []byte) {
 	return response
 }
 
-func (a *Authenticate) getLowestPayloadOffset() int {
+func (a *AuthenticateMessage) getLowestPayloadOffset() int {
 	payloadStructs := [...]*PayloadStruct{a.LmChallengeResponse, a.NtChallengeResponseFields, a.DomainName, a.UserName, a.Workstation, a.EncryptedRandomSessionKey}
 
 	// Find the lowest offset value
@@ -179,7 +180,7 @@ func (a *Authenticate) getLowestPayloadOffset() int {
 	return lowest
 }
 
-func (a *Authenticate) Bytes() []byte {
+func (a *AuthenticateMessage) Bytes() []byte {
 	payloadLen := int(a.LmChallengeResponse.Len + a.NtChallengeResponseFields.Len + a.DomainName.Len + a.UserName.Len + a.Workstation.Len + a.EncryptedRandomSessionKey.Len)
 	messageLen := 8 + 4 + 6*8 + 4 + 8 + 16
 	payloadOffset := uint32(messageLen)
@@ -215,7 +216,7 @@ func (a *Authenticate) Bytes() []byte {
 	payloadOffset += uint32(a.EncryptedRandomSessionKey.Len)
 	buffer.Write(a.EncryptedRandomSessionKey.Bytes())
 
-	buffer.Write(Uint32ToBytes(a.NegotiateFlags))
+	buffer.Write(uint32ToBytes(a.NegotiateFlags))
 
 	if a.Version != nil {
 		buffer.Write(a.Version.Bytes())
@@ -240,7 +241,7 @@ func (a *Authenticate) Bytes() []byte {
 	return buffer.Bytes()
 }
 
-func (a *Authenticate) String() string {
+func (a *AuthenticateMessage) String() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("Authenticate NTLM Message\n")

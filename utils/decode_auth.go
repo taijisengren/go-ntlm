@@ -4,7 +4,8 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
-	"ntlm/messages"
+
+	"github.com/taijisengren/go-ntlm/ntlm"
 )
 
 func main() {
@@ -14,6 +15,6 @@ func main() {
 	fmt.Println("Paste the base64 encoded Authenticate message (with no line breaks):")
 	fmt.Scanf("%s", &data)
 	authenticateData, _ := base64.StdEncoding.DecodeString(data)
-	a, _ := messages.ParseAuthenticateMessage(authenticateData, *ntlmVersion)
+	a, _ := ntlm.ParseAuthenticateMessage(authenticateData, *ntlmVersion)
 	fmt.Printf(a.String())
 }

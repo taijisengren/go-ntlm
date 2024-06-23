@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"ntlm"
-	"ntlm/messages"
+
+	"github.com/taijisengren/go-ntlm/ntlm"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	server.SetUserInfo("050045.rmwatest@reuters.com", "Welcome1", "")
 
 	challengeData, _ := base64.StdEncoding.DecodeString(challengeMessage)
-	c, _ := messages.ParseChallengeMessage(challengeData)
+	c, _ := ntlm.ParseChallengeMessage(challengeData)
 
 	fmt.Println("----- Challenge Message ----- ")
 	fmt.Println(c.String())
@@ -37,9 +37,9 @@ func main() {
 	authenticateData, _ := base64.StdEncoding.DecodeString(authenticateMessage)
 	var context ntlm.ServerSession
 
-	msg, err := messages.ParseAuthenticateMessage(authenticateData, 2)
+	msg, err := ntlm.ParseAuthenticateMessage(authenticateData, 2)
 	if err != nil {
-		msg2, newErr := messages.ParseAuthenticateMessage(authenticateData, 1)
+		msg2, newErr := ntlm.ParseAuthenticateMessage(authenticateData, 1)
 		if newErr != nil {
 			fmt.Printf("Error ParseAuthenticateMessage , %s", err)
 			return
